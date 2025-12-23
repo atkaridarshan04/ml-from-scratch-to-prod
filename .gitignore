@@ -1,7 +1,8 @@
 venv/
 .venv/
+__pycache__
 
 data/
 
 # Ignored because it is a large model file
-artifacts/random_forest/rf_model.joblib
+*rf_model.joblib

@@ -1,5 +1,3 @@
-# 📄 `docs/00_problem_statement.md`
-
 ## Problem Statement
 
 ### Business Objective
