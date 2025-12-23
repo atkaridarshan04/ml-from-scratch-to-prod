@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+
+# Git
+.git/
+.gitignore
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Tests & caches
+.pytest_cache/
+
+# Logs & outputs (runtime-generated)
+logs/
+outputs/
+
+# Notebooks & experiments (not needed in API image)
+notebooks/
+docs/
+data/
+artifacts/experiments/
+
+# OS
+.DS_Store
