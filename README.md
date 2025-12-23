@@ -1,166 +1,191 @@
-# ML from Scratch to Production
+# Machine Learning Pipeline – Training & Batch Inference
 
-An end-to-end **Machine Learning engineering and MLOps project** that demonstrates
-how to design, train, validate, and operationalize a machine learning model using
-**industry-standard, production-oriented ML practices**.
+This repository contains the **machine learning implementation and pipelines**
+for the California Housing Price Prediction project.
 
-The project uses the **California Housing dataset** as a reference use case and
-focuses on building a **reproducible, maintainable, and deployment-ready ML system**
-— progressing from experimentation to production pipelines.
+All experimentation was first performed in notebooks.
+Based on those experiments, the **final validated model and preprocessing logic**
+were migrated into **production-grade Python pipelines**.
 
----
+This README focuses on:
 
-## 🎯 Project Objective
+* How the ML pipelines are structured
+* How to run training and inference
+* What artifacts are produced
+* What modeling decisions were finalized
 
-The objectives of this project are to:
 
-- Engineer a regression model **from first principles**
-- Follow a **structured ML lifecycle** from data understanding to validation
-- Establish a **validated baseline model**
-- Migrate notebook-based experimentation into **production-grade Python pipelines**
-- Build the foundation for a **full MLOps workflow** (CI/CD, tracking, deployment)
 
----
+## 📌 Final Modeling Decision
 
-## 🧠 Machine Learning Phase (Completed)
+Multiple models were evaluated during experimentation, including:
 
-The ML phase was implemented using a **progressive, evidence-driven approach**, where
-each modeling decision was backed by quantitative evaluation.
+* Linear Regression
+* Ridge Regression
+* Decision Trees
+* Random Forest
+* Gradient Boosting
 
-### 1️⃣ Problem Framing & Data Understanding
-- Defined prediction target: `median_house_value`
-- Dataset and feature analysis
-- Identification of numerical vs categorical features
-- Constraints and data quality considerations
+Based on **hold-out evaluation and cross-validation results**,
+**Gradient Boosting (`HistGradientBoostingRegressor`) with engineered features**
+consistently achieved the best generalization performance.
 
-### 2️⃣ Baseline Modeling
-- Linear Regression
-- Ridge Regression
-- Used to diagnose bias, variance, and scaling behavior
+👉 As a result:
 
-### 3️⃣ Non-Linear Modeling
-- Decision Trees (unconstrained & constrained)
-- Random Forest for variance reduction and stability
+* Only the **final Gradient Boosting model**
+* And its required preprocessing steps
 
-### 4️⃣ Feature Engineering
-- Domain-driven engineered features:
-  - Rooms per household
-  - Bedrooms per room
-  - Population per household
-- Systematic evaluation across model families
+were migrated into Python pipelines for training and inference.
 
-### 5️⃣ Advanced Modeling
-- Gradient Boosting using `HistGradientBoostingRegressor`
-- Selected after Random Forest performance plateaued
-- Improved bias–variance tradeoff
+All other models remain documented in notebooks for reference.
 
-### 6️⃣ Model Validation
-- Hold-out test evaluation
-- Cross-validation for stability
-- Metrics: RMSE and R²
 
-👉 **Gradient Boosting with engineered features is selected as the current production baseline.**
 
----
+## 🧠 Feature Processing Overview
 
-## 📊 Current Best Model
+The following preprocessing steps are applied consistently during
+training and inference:
 
-| Model | Test RMSE (≈) | CV RMSE (≈) | Notes |
-|------|---------------|------------|------|
-| Random Forest | ~49k | ~49k | Stable non-linear baseline |
-| Gradient Boosting | **~45.5k** | **~46.5k** | Lower bias, improved generalization |
+* Missing value imputation (`total_bedrooms`)
+* One-hot encoding (`ocean_proximity`)
+* Feature engineering:
 
-Cross-validation confirms consistent generalization across data splits.
+  * Rooms per household
+  * Bedrooms per room
+  * Population per household
 
----
+The same logic is reused across:
 
-## ⚙️ Production Pipelines (Completed)
+* Training
+* Batch inference
+* (Later) online inference
 
-Notebook experimentation has been **fully migrated to production-grade pipelines**.
+This ensures **no training–serving skew**.
 
-### ✅ Training Pipeline
-- Deterministic data splitting
-- Feature preprocessing (imputation, encoding, feature engineering)
-- Model training and evaluation
-- Artifact persistence (model, preprocessors, metrics)
-- Structured logging
 
-### ✅ Batch Inference Pipeline
-- Loads production artifacts
-- Applies identical preprocessing as training
-- Runs predictions on curated inference inputs
-- Outputs predictions separately from model artifacts
 
-These pipelines are designed to be:
-- CI/CD friendly
-- Reproducible
-- API-ready
+## 🧪 Environment Setup
 
----
+Create and activate a Python environment, then install dependencies:
 
-## 🗂️ Repository Structure
-
+```bash
+pip install -r requirements.txt
+export PYTHONPATH=$(pwd)/src
 ```
 
+(At this stage, requirements include only ML and pipeline dependencies.)
+
+
+
+## ⚙️ Training Pipeline
+
+### Entry point
+
+```bash
+python -m pipelines.train
+```
+
+### What the training pipeline does
+
+* Loads the raw California Housing dataset
+* Splits data into train and test sets
+* Applies preprocessing and feature engineering
+* Trains the Gradient Boosting regression model
+* Evaluates performance on train and test data
+* Saves all required artifacts for inference
+
+### Artifacts produced
+
+Saved under:
+
+```
+artifacts/production/
+```
+
+Includes:
+
+* Trained model
+* Imputer
+* Encoder
+* Evaluation metrics (JSON)
+
+These artifacts represent the **single source of truth** for inference.
+
+
+
+## 🔁 Batch Inference Pipeline
+
+### Preparing inference data
+
+A utility script is provided to generate a sample inference dataset:
+
+```bash
+python data/inference/generate_sample.py
+```
+
+This creates:
+
+```
+data/inference/sample_input.csv
+```
+
+You can edit or extend this file to test different inference scenarios.
+
+
+### Running batch inference
+
+```bash
+python -m pipelines.inference
+```
+
+### What the inference pipeline does
+
+* Loads production artifacts
+* Reads inference input data
+* Applies the same preprocessing as training
+* Runs predictions using the trained model
+* Writes outputs to a separate directory
+
+### Outputs
+
+```
+outputs/predictions.json
+```
+
+Inference outputs are kept separate from model artifacts to avoid
+accidental coupling.
+
+
+
+## 🗂️ ML-Relevant Repository Structure
+
+```
 CaliforniaHousePricePred
 ├── artifacts/
-│   ├── experiments/         # Notebook experiment outputs (history)
-│   └── production/          # Single source of truth for deployment
+│   ├── experiments/         # Notebook experiment outputs
+│   └── production/          # Final ML artifacts for inference
 ├── data/
 │   ├── raw/                 # Original dataset
-│   └── inference/           # Curated inference inputs
-├── docs/                    # Design decisions & ML reasoning
-├── notebooks/               # Exploratory ML experimentation
-├── pipelines/               # Training & inference execution entry points
-├── src/                     # Reusable production ML code
-├── outputs/                 # Inference outputs (ephemeral)
-├── logs/                    # Pipeline execution logs
-├── requirements.txt
-└── README.md
-
+│   └── inference/           # Inference inputs & generators
+├── notebooks/               # ML experimentation and analysis
+├── pipelines/               # Train & batch inference entry points
+├── src/
+│   ├── preprocessing/       # Imputation, encoding, feature engineering
+│   ├── models/              # Training & evaluation logic
+│   └── inference/           # Shared inference utilities
+├── outputs/                 # Batch inference results
+└── logs/                    # Training & inference logs
 ```
 
----
 
-## 📄 Documentation Philosophy
 
-- **Notebooks** → exploration and experimentation
-- **Docs** → reasoning, decisions, and conclusions
-- **Pipelines** → execution and orchestration
-- **Source code** → reusable, testable ML components
-- **Artifacts** → immutable, versioned model outputs
-- **Outputs** → ephemeral inference results
+## 🧩 Key Design Choices
 
----
-
-## 🚀 MLOps Phase (Next)
-
-The next phase focuses on **serving and automation**:
-
-- FastAPI-based online inference
-- CI/CD integration for training and inference pipelines
-- MLflow experiment tracking and model registry
-- Champion–challenger model promotion
-- Monitoring and retraining strategies
-
-The current pipelines serve as a **stable and production-ready foundation** for
-these MLOps components.
+* Notebook code is **not reused directly**
+* All reusable logic lives in `src/`
+* Pipelines are deterministic and scriptable
+* Training and inference share identical preprocessing
+* Artifacts are immutable once produced
 
 ---
-
-## 🧩 Design Principles
-
-- Sequential ML development (baseline → validation → improvement)
-- Clear separation of experimentation and production code
-- Reproducibility and traceability at every stage
-- Evidence-based model selection
-- Infrastructure-agnostic ML design
-
----
-
-## 📌 Summary
-
-This repository demonstrates how to evolve a machine learning project from
-notebook-based experimentation into a **clean, maintainable, and production-ready
-ML system**, following real-world ML engineering and MLOps best practices.
 
