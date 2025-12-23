@@ -2,7 +2,9 @@ venv/
 .venv/
 __pycache__
 
-data/
+*.csv
 
 # Ignored because it is a large model file
 *rf_model.joblib
+
+logs

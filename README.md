@@ -1,60 +1,65 @@
-# ML from Scratch To Production
+# ML from Scratch to Production
 
-An end-to-end Machine Learning and MLOps project that demonstrates how to design,
-train, validate, and operationalize a ml model using **industry-standard,
-sequential ML engineering practices** and eventually deploy to production by implementing a full **MLOps pipeline**.
+An end-to-end **Machine Learning engineering and MLOps project** that demonstrates
+how to design, train, validate, and operationalize a machine learning model using
+**industry-standard, production-oriented ML practices**.
 
-The project uses the California Housing dataset as a reference use case while
-focusing on building a **reproducible and production-ready ML system**.
+The project uses the **California Housing dataset** as a reference use case and
+focuses on building a **reproducible, maintainable, and deployment-ready ML system**
+— progressing from experimentation to production pipelines.
+
+---
 
 ## 🎯 Project Objective
 
-The objective of this project is to:
+The objectives of this project are to:
 
-- Engineer a regression model **from scratch**
-- Follow a **structured ML lifecycle** from data understanding to model validation
+- Engineer a regression model **from first principles**
+- Follow a **structured ML lifecycle** from data understanding to validation
 - Establish a **validated baseline model**
-- Transition the solution into a **full MLOps workflow** using tools such as
-  MLflow, data versioning, and automated pipelines
+- Migrate notebook-based experimentation into **production-grade Python pipelines**
+- Build the foundation for a **full MLOps workflow** (CI/CD, tracking, deployment)
 
 ---
 
 ## 🧠 Machine Learning Phase (Completed)
 
-The ML phase was implemented using a **progressive and evidence-driven approach**,
-where each step informed the next.
+The ML phase was implemented using a **progressive, evidence-driven approach**, where
+each modeling decision was backed by quantitative evaluation.
 
 ### 1️⃣ Problem Framing & Data Understanding
-- Clear definition of the prediction target (`median_house_value`)
+- Defined prediction target: `median_house_value`
 - Dataset and feature analysis
-- Identification of feature types and constraints
+- Identification of numerical vs categorical features
+- Constraints and data quality considerations
 
 ### 2️⃣ Baseline Modeling
 - Linear Regression
 - Ridge Regression
-- Used to diagnose bias and scaling behavior
+- Used to diagnose bias, variance, and scaling behavior
 
 ### 3️⃣ Non-Linear Modeling
 - Decision Trees (unconstrained & constrained)
-- Random Forest for variance control and baseline non-linear performance
+- Random Forest for variance reduction and stability
 
 ### 4️⃣ Feature Engineering
-- Domain-driven ratio features:
+- Domain-driven engineered features:
   - Rooms per household
   - Bedrooms per room
   - Population per household
-- Evaluated impact systematically across models
+- Systematic evaluation across model families
 
 ### 5️⃣ Advanced Modeling
 - Gradient Boosting using `HistGradientBoostingRegressor`
-- Selected to reduce bias after Random Forest performance plateaued
+- Selected after Random Forest performance plateaued
+- Improved bias–variance tradeoff
 
 ### 6️⃣ Model Validation
 - Hold-out test evaluation
-- 5-fold cross-validation
-- Stability assessed using RMSE and R²
+- Cross-validation for stability
+- Metrics: RMSE and R²
 
-👉 **Gradient Boosting with engineered features is selected as the current ML baseline.**
+👉 **Gradient Boosting with engineered features is selected as the current production baseline.**
 
 ---
 
@@ -63,63 +68,99 @@ where each step informed the next.
 | Model | Test RMSE (≈) | CV RMSE (≈) | Notes |
 |------|---------------|------------|------|
 | Random Forest | ~49k | ~49k | Stable non-linear baseline |
-| Gradient Boosting | **~45.5k** | **~46.5k** | Lower bias, improved accuracy |
+| Gradient Boosting | **~45.5k** | **~46.5k** | Lower bias, improved generalization |
 
 Cross-validation confirms consistent generalization across data splits.
 
 ---
 
-## 🧪 Repository Structure
+## ⚙️ Production Pipelines (Completed)
+
+Notebook experimentation has been **fully migrated to production-grade pipelines**.
+
+### ✅ Training Pipeline
+- Deterministic data splitting
+- Feature preprocessing (imputation, encoding, feature engineering)
+- Model training and evaluation
+- Artifact persistence (model, preprocessors, metrics)
+- Structured logging
+
+### ✅ Batch Inference Pipeline
+- Loads production artifacts
+- Applies identical preprocessing as training
+- Runs predictions on curated inference inputs
+- Outputs predictions separately from model artifacts
+
+These pipelines are designed to be:
+- CI/CD friendly
+- Reproducible
+- API-ready
+
+---
+
+## 🗂️ Repository Structure
 
 ```
-mlops-house-price-prediction
-├── artifacts/              # Trained models and evaluation metrics
-├── data/                   # Raw and processed datasets
-├── notebooks/              # ML experimentation and analysis
-├── docs/                   # ML and MLOps decision documentation
-├── src/                    # Production ML code (WIP)
-├── pipelines/              # Training and inference pipelines (planned)
+
+CaliforniaHousePricePred
+├── artifacts/
+│   ├── experiments/         # Notebook experiment outputs (history)
+│   └── production/          # Single source of truth for deployment
+├── data/
+│   ├── raw/                 # Original dataset
+│   └── inference/           # Curated inference inputs
+├── docs/                    # Design decisions & ML reasoning
+├── notebooks/               # Exploratory ML experimentation
+├── pipelines/               # Training & inference execution entry points
+├── src/                     # Reusable production ML code
+├── outputs/                 # Inference outputs (ephemeral)
+├── logs/                    # Pipeline execution logs
 ├── requirements.txt
 └── README.md
+
 ```
 
 ---
 
 ## 📄 Documentation Philosophy
 
-- **Notebooks** → experimentation and exploration
-- **Docs** → reasoning, design choices, and conclusions
-- **Artifacts** → reproducible model outputs and metrics
-- **Source code** → reusable and production-ready ML components
+- **Notebooks** → exploration and experimentation
+- **Docs** → reasoning, decisions, and conclusions
+- **Pipelines** → execution and orchestration
+- **Source code** → reusable, testable ML components
+- **Artifacts** → immutable, versioned model outputs
+- **Outputs** → ephemeral inference results
 
 ---
 
-## 🚀 MLOps Phase (In Progress)
+## 🚀 MLOps Phase (Next)
 
-The next phase focuses on operationalizing the validated ML model:
+The next phase focuses on **serving and automation**:
 
-- MLflow for experiment tracking and model registry
-- Data and artifact versioning
-- Reproducible training pipelines
-- Model packaging and deployment
+- FastAPI-based online inference
+- CI/CD integration for training and inference pipelines
+- MLflow experiment tracking and model registry
+- Champion–challenger model promotion
 - Monitoring and retraining strategies
 
-The ML phase serves as a **stable foundation** for these MLOps components.
+The current pipelines serve as a **stable and production-ready foundation** for
+these MLOps components.
 
 ---
 
 ## 🧩 Design Principles
 
 - Sequential ML development (baseline → validation → improvement)
-- Explicit separation of experimentation and production code
+- Clear separation of experimentation and production code
 - Reproducibility and traceability at every stage
-- Model selection based on validated evidence
+- Evidence-based model selection
+- Infrastructure-agnostic ML design
 
 ---
 
 ## 📌 Summary
 
-This repository demonstrates how to engineer an ML model from scratch using
-best practices and then extend it into a full MLOps system suitable for
-production deployment.
+This repository demonstrates how to evolve a machine learning project from
+notebook-based experimentation into a **clean, maintainable, and production-ready
+ML system**, following real-world ML engineering and MLOps best practices.
 

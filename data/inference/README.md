@@ -1,0 +1,1 @@
+RUN the [generate_sample.py](./generate_sample.py) script to create a sample input file for inference.

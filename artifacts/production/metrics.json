@@ -1,0 +1,14 @@
+{
+    "model_family": "gradient_boosting",
+    "model_name": "hist_gradient_boosting",
+    "holdout": {
+        "train": {
+            "rmse": 35390.54226267088,
+            "r2": 0.9063052890449722
+        },
+        "test": {
+            "rmse": 45531.575116140964,
+            "r2": 0.8417956251078377
+        }
+    }
+}
