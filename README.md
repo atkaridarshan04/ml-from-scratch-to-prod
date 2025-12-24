@@ -1,46 +1,50 @@
-# ML from Scratch to Production
+# ML from Scratch to Production (API Baseline)
 
-An end-to-end **Machine Learning engineering project** that demonstrates how a
-model evolves from experimentation to **production-ready training pipelines,
-batch inference, and an online inference API**.
+This branch contains the **API baseline implementation**, where the online
+inference service loads trained models and preprocessing artifacts directly
+from the local filesystem (`artifacts/production`).
 
-The project uses the **California Housing dataset** as a reference use case and
-focuses on building a **clean, reproducible, and deployable ML system** with
-clear separation between modeling, pipelines, and serving.
-
-
-
-## 🎯 What This Repository Represents
-
-* Finalized ML pipelines (training & batch inference)
-* A production-ready **FastAPI online inference service**
-* Automated tests for the API
-* Dockerized inference service
-
-Detailed ML experimentation and modeling rationale are **documented separately**
-and referenced below.
+It represents the system state **before introducing MLflow-based model
+registry and lifecycle management**, and is kept as a stable reference for
+comparison with the production MLOps design in the `main` branch.
 
 
+## 🎯 What This Branch Represents
 
-## 🧠 Machine Learning (Summary)
+This branch contains a **pre-MLflow production-style system**, including:
 
-* Multiple model families were evaluated during experimentation
-* Feature engineering was validated across models
-* **Gradient Boosting (`HistGradientBoostingRegressor`)** achieved the best
+- Finalized ML training pipeline
+- Batch inference pipeline
+- FastAPI-based online inference service
+- Local artifact management (`artifacts/production`)
+- Shared preprocessing logic across training, batch inference, and API
+- Automated API tests
+- Dockerized inference service
+
+This design serves as a **baseline architecture** before adopting a centralized
+model registry and lifecycle management.
+
+
+
+## 🧠 Machine Learning Overview
+
+- Multiple model families were evaluated during experimentation
+- Feature engineering was validated across models
+- **Gradient Boosting (`HistGradientBoostingRegressor`)** achieved the best
   generalization performance
-* This model was selected as the **production baseline**
-* Only the finalized model and required preprocessing logic were migrated to
-  Python pipelines
+- This model was selected as the **production baseline**
+- Finalized preprocessing and modeling logic was migrated into Python pipelines
 
-📘 **Detailed ML reasoning, experiments, and decisions** are documented here:
+### Detailed ML artifacts are available in:
+- `notebooks/` — experimentation and EDA
+- `docs/` — ML design, feature analysis, and modeling decisions
+- `artifacts/experiments/` — historical experiment outputs
 
-* `docs/` (step-by-step ML design)
-* `notebooks/` (experimentation history)
-* `ml-baseline` branch (ML-only checkpoint)
+> **For only ml workflow refer the `ml-baseline` branch**
 
 
 
-## 🗂️ Repository Structure (Main Branch)
+## 🗂️ Repository Structure (API Baseline)
 
 ```
 root
@@ -52,19 +56,33 @@ root
 │   └── inference/           # Inference inputs & generators
 ├── docs/                    # ML design & decision records
 ├── notebooks/               # Experimentation history
+├── outputs/                 # Batch inference outputs
 ├── pipelines/               # Training & batch inference entry points
+├── requirements/            # Dependency split (train / api)
 ├── src/                     # Production ML & API code
 ├── tests/                   # API tests
-├── outputs/                 # Batch inference outputs
-├── logs/                    # Training, inference & API logs
 ├── Dockerfile               # Inference service containerization
-├── requirements/            # Dependency split (base / train / api)
 └── README.md
 ```
 
 
+## ⚙️ ML Pipelines
 
-## ⚙️ ML Pipelines (Completed)
+### Create and activate a virtual environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Install API dependencies
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements/train.txt
+
+export PYTHONPATH=$(pwd)/src
+```
 
 ### Training Pipeline
 
@@ -72,11 +90,13 @@ root
 python -m pipelines.train
 ```
 
+Responsibilities:
+
 * Loads raw dataset
 * Applies preprocessing and feature engineering
 * Trains the final Gradient Boosting model
 * Evaluates performance
-* Saves production artifacts
+* Saves trained artifacts locally
 
 Artifacts are written to:
 
@@ -84,7 +104,7 @@ Artifacts are written to:
 artifacts/production/
 ```
 
-
+---
 
 ### Batch Inference Pipeline
 
@@ -92,7 +112,9 @@ artifacts/production/
 python -m pipelines.inference
 ```
 
-* Loads production artifacts
+Responsibilities:
+
+* Loads production artifacts from the filesystem
 * Applies identical preprocessing as training
 * Runs predictions on inference input data
 
@@ -110,16 +132,16 @@ python data/inference/generate_sample.py
 
 
 
-## 🌐 Online Inference API (Current Focus)
+## 🌐 Online Inference API
 
-The system exposes a **FastAPI-based online inference service** for real-time
+This branch exposes a **FastAPI-based online inference service** for real-time
 housing price predictions.
 
 ### API Characteristics
 
 * FastAPI REST service
 * Request/response validation using Pydantic
-* Artifact loading via FastAPI lifespan events
+* Artifact loading from `artifacts/production` at startup
 * Shared preprocessing logic with training & batch inference
 * Structured file-based logging
 * Automated API tests
@@ -134,27 +156,18 @@ housing price predictions.
 
 ## ▶️ Running the API Locally (Python Environment)
 
-### 1️⃣ Create and activate a virtual environment
+### 1️⃣ Install API dependencies
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 2️⃣ Install API dependencies
-
-```bash
-python -m pip install --upgrade pip
 pip install -r requirements/api.txt
 ```
 
-### 3️⃣ Set Python path
-
+### 2️⃣ Set Python path
 ```bash
 export PYTHONPATH=$(pwd)/src
 ```
 
-### 4️⃣ Start the API server
+### 3️⃣ Start the API server
 
 ```bash
 uvicorn api.main:app --reload
@@ -162,7 +175,6 @@ uvicorn api.main:app --reload
 
 * API: [http://localhost:8000](http://localhost:8000)
 * Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-
 
 
 ## 🐳 Running the API with Docker
@@ -173,11 +185,19 @@ docker run -p 8000:8000 housing-api
 ```
 
 
-
 ## 🧪 Running Tests
 
 ```bash
 pytest -v
 ```
+
+## 📌 Note
+
+This branch represents a **filesystem-based API design** and is intentionally
+kept as a stable reference point.
+
+The **current production-grade MLOps implementation**, using MLflow for model
+registry and lifecycle management, is available in the `main` branch.
+
 
 ---
