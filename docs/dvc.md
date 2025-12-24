@@ -41,7 +41,7 @@ This creates:
 dvc add data/raw/housing.csv
 ```
 
-This creates: [data/raw/housing.csv.dvc](../../data/raw/housing.csv.dvc)
+This creates: [data/raw/housing.csv.dvc](../data/raw/housing.csv.dvc)
 
 ---
 
@@ -74,10 +74,10 @@ dvc push
 ```
 > Note: Make sure to configure the aws CLI with appropriate credentials if using S3.
 
-![dvc_remote](../__assets/dvc_remote_push.png)
+![dvc_remote](./__assets/dvc_remote_push.png)
 
-![s3_bucket_1](../__assets/s3_bucket_1.png)
-<!-- ![s3_bucket_2](../__assets/s3_bucket_2.png) -->
+![s3_bucket_1](./__assets/s3_bucket_1.png)
+<!-- ![s3_bucket_2](./__assets/s3_bucket_2.png) -->
 
 
 ## 🔁 Updating the Dataset
@@ -88,7 +88,7 @@ Whenever the raw dataset changes:
 # Modify data/raw/housing.csv
 dvc status
 ```
-![dvc_status](../__assets/dvc_status.png)
+![dvc_status](./__assets/dvc_status.png)
 
 Then run:
 
