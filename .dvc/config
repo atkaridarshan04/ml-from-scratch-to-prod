@@ -1,0 +1,4 @@
+[core]
+    remote = housing-data-s3
+['remote "housing-data-s3"']
+    url = s3://housing-data-remote-bucket
