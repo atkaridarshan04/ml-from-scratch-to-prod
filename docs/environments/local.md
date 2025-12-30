@@ -29,7 +29,7 @@ MLflow acts as the integration point between training and inference.
 ### Create and activate a virtual environment
 
 ```bash
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 ```
 
@@ -59,9 +59,6 @@ MLflow UI will be available at:
 http://localhost:5000
 ```
 
-This local setup is sufficient for development and demonstrations.
-
-
 
 ## 🌍 Required Environment Variables
 
@@ -90,9 +87,15 @@ python -m pipelines.train
 * Executes the training pipeline locally
 * Logs parameters, metrics, and artifacts to MLflow
 * Registers a new model version in the MLflow Model Registry
-* Updates the `production` alias
+* Updates the `Production` alias
 
 Each execution corresponds to a single MLflow run.
+
+### Download the trained model form MLflow
+
+```bash
+mlflow artifacts download -u models:/CaliforniaHousingRegressor@Production -d ./serving/models
+```
 
 <!-- Detailed training logic and model lifecycle behavior are documented in:
 
@@ -115,7 +118,7 @@ python -m pipelines.inference
 
 ### What this command does
 
-* Loads the `production` model from MLflow
+* Loads the `Production` model from MLflow
 * Accepts raw input data
 * Runs predictions
 * Writes results to disk
@@ -148,8 +151,8 @@ pip install -r requirements/api.txt
 
 
 ```bash
-cd service/model-api  
-uvicorn main:app --reload
+cd serving  
+uvicorn api.main:app --reload
 ```
 
 

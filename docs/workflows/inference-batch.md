@@ -7,7 +7,7 @@ real-time responses are not required.
 
 ## Behavior
 
-- Loads the `production` model from MLflow
+- Loads the `Production` model from MLflow
 - Accepts raw input data
 - Runs predictions
 - Writes results to disk `outputs/batch_run_001.json`

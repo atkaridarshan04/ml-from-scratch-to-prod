@@ -5,7 +5,7 @@
 The training pipeline is responsible for:
 - Training the model
 - Evaluating performance
-- Registering a production-ready model
+- Registering a Production-ready model
 
 ## Key steps
 
@@ -21,4 +21,4 @@ The training pipeline is responsible for:
 
 - MLflow experiment run
 - Registered model version
-- Updated `production` alias
+- Updated `Production` alias

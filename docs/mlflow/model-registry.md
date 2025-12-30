@@ -50,21 +50,23 @@ This project uses **model aliases** to manage deployment state.
 The alias:
 
 ```
-production
+Production
 ```
 
 always points to the currently approved model version.
 
 During training:
 - A new model version is registered
-- The `production` alias is updated to point to the new version
+- The `Production` alias is updated to point to the new version
 
 ![mlflow-model-version](../__assets/mlflow-model-version.png)
 
 Inference always resolves the model via:
 
 ```python
-models:/CaliforniaHousingRegressor@production
+models:/CaliforniaHousingRegressor@Production # Alias based
+# or
+models:/CaliforniaHousingRegressor/1        # Version based
 ```
 
 

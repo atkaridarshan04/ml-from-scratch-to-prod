@@ -3,10 +3,10 @@ Training pipeline
 ----------------------------------------------------------
 - Loads raw data
 - Applies preprocessing & feature engineering
-- Trains HistGradientBoostingRegressor (approved production model)
+- Trains HistGradientBoostingRegressor (approved Production model)
 - Evaluates on holdout set
 - Logs params, metrics, dataset lineage, preprocessors, and model to MLflow
-- Registers model and assigns a production alias (modern MLflow practice)
+- Registers model and assigns a Production alias (modern MLflow practice)
 """
 
 import logging
@@ -52,7 +52,7 @@ EXPERIMENT_NAME = "california_housing_price"
 RUN_NAME = "hist_gradient_boosting"
 
 REGISTERED_MODEL_NAME = "CaliforniaHousingRegressor"
-MODEL_ALIAS = "production" 
+MODEL_ALIAS = "Production" 
 
 
 # --------------------------------------------------
@@ -175,7 +175,7 @@ def run_training():
         mlflow.pyfunc.log_model(
             name="model",
             python_model=inference_pipeline,
-            code_paths=["src"],  
+            # code_paths=["src"],       # if custom code is needed
             pip_requirements="requirements/train.txt",
             registered_model_name=REGISTERED_MODEL_NAME,
             input_example=input_example,
@@ -186,10 +186,10 @@ def run_training():
         # --------------------------------------------------
         # Log the hgb model
         # --------------------------------------------------
-        mlflow.sklearn.log_model(
-            sk_model=model,
-            name="hgb-model",
-        )
+        # mlflow.sklearn.log_model(
+        #     sk_model=model,
+        #     name="hgb-model",
+        # )
 
         # --------------------------------------------------
         # Assign model alias

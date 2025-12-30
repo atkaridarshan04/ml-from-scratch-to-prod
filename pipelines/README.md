@@ -24,12 +24,12 @@ python -m pipelines.train
 * Applies preprocessing and feature engineering
 * Trains the selected model
 * Evaluates performance
-* Saves production artifacts
+* Saves Production artifacts
 
 **Outputs**
 
 ```
-artifacts/production/
+artifacts/Production/
 ```
 
 ---
@@ -42,7 +42,7 @@ python -m pipelines.inference
 
 **What it does**
 
-* Loads production artifacts
+* Loads Production artifacts
 * Reads inference input data
 * Applies identical preprocessing
 * Runs predictions

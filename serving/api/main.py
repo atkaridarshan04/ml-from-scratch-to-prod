@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from .routes import router as prediction_router
+from api.routes import router as prediction_router
 import mlflow
 
 logging.basicConfig(
@@ -11,8 +11,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("api")
 
-MODEL_URI = "models:/CaliforniaHousingRegressor@production"
-
+MODEL_URI = "models/"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

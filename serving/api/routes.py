@@ -2,7 +2,7 @@ import logging
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Request
 
-from .schemas import PredictionRequest, PredictionResponse
+from api.schemas import PredictionRequest, PredictionResponse
 
 logging.basicConfig(
     level=logging.INFO,

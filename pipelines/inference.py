@@ -1,7 +1,7 @@
 """
 Batch inference pipeline
 ------------------------
-- Loads production model from MLflow
+- Loads Production model from MLflow
 - Loads input data
 - Runs predictions
 - Saves predictions
@@ -21,7 +21,10 @@ logging.basicConfig(
 logger = logging.getLogger("inference_pipeline")
 
 
-MODEL_URI = "models:/CaliforniaHousingRegressor@production"
+# MODEL_URI = "models:/CaliforniaHousingRegressor@Production"   # Alias based
+# MODEL_URI = "models:/CaliforniaHousingRegressor/1"            # Version based
+MODEL_URI = "serving/models/"    # Local path based
+
 INPUT_DATA = Path("data/inference/sample_input.csv")
 OUTPUT_PATH = Path("outputs/batch_run_001.json")
 
@@ -32,7 +35,7 @@ def run_inference():
     # --------------------------------------------------
     # Load model from MLflow
     # --------------------------------------------------
-    logger.info("Loading production model from MLflow")
+    logger.info("Loading Production model from MLflow")
     model = mlflow.pyfunc.load_model(MODEL_URI)
 
     # --------------------------------------------------

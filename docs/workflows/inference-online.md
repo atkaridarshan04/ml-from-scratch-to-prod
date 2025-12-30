@@ -36,7 +36,7 @@ At application startup, the model is loaded **once** using FastAPI’s
 `lifespan` mechanism:
 
 - The model is fetched from MLflow Model Registry
-- The `production` alias is resolved
+- The `Production` alias is resolved
 - The model is stored in application state
 
 This avoids loading the model per request.

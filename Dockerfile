@@ -1,5 +1,5 @@
 # ---- builder ----
-FROM python:3.12-slim AS builder
+FROM python:3.10-slim AS builder
 WORKDIR /w
 
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
@@ -9,7 +9,7 @@ COPY requirements/api.txt requirements.txt
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # ---- runtime ----
-FROM python:3.12-slim
+FROM python:3.10-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src
@@ -20,8 +20,9 @@ COPY requirements/api.txt requirements.txt
 RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
   && rm -rf /wheels
 
-COPY service/model-api/ /app/api
+COPY serving/api/ /app/api
 COPY src/ /app/src/
+COPY serving/models/ /app/models/
 
 EXPOSE 8000
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

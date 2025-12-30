@@ -87,9 +87,9 @@ cd ml-from-scratch-to-prod
 git checkout main
 ```
 
-The recommended way to run the system locally is **Docker**.
+### Local Development 
 
-➡️ See: [docs/environments/docker.md](./docs/environments/docker.md)
+➡️ See: [docs/environments/local.md](./docs/environments/local.md)
 
 
 
@@ -101,12 +101,11 @@ ml-from-scratch-to-prod/
 ├── data/                 # Raw data and inference inputs
 ├── docs/                 # Architecture, workflows, and decisions
 ├── pipelines/            # Training & batch inference entry points
-├── src/                  # Core ML logic and API implementation
+├── serving               # Serving layer (API code & model artifacts)
+├── src/                  # Core ML logic
 ├── tests/                # API tests
-├── Dockerfile.api        # Inference API image
-├── Dockerfile.train      # Training image
-├── docker-compose.yml    # Local orchestration
 ├── requirements/         # Dependency separation (train / api)
+├── Dockerfile            # Docker image for api serving
 └── README.md             # This file
 ```
 
