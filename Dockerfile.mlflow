@@ -1,0 +1,7 @@
+FROM ghcr.io/mlflow/mlflow:v3.8.0
+
+RUN pip install --no-cache-dir \
+    boto3 \
+    botocore \
+    s3fs    \
+    psycopg2-binary

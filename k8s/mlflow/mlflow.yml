@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+  namespace: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      serviceAccountName: s3-sa
+      containers:
+        - name: mlflow
+          image: ghcr.io/atkaridarshan04/mlflow-server:v3.8.0
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: s3creds
+          command: ["mlflow"]
+          args:
+            - server
+            - --host=0.0.0.0
+            - --port=5000
+            - --backend-store-uri=postgresql://mlflowuser:password@postgresql-service:5432/mlflow
+            - --default-artifact-root=s3://mlflow-artifact-store-123-da/
+            - --allowed-hosts=*
+            - --cors-allowed-origins=*
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlflow
+  namespace: mlflow
+spec:
+  selector:
+    app: mlflow
+  ports:
+    - port: 5000
+      targetPort: 5000

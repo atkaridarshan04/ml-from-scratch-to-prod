@@ -1,0 +1,24 @@
+---
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: housing-model
+  annotations:
+    serving.kserve.io/s3-endpoint: s3.ap-south-1.amazonaws.com
+    serving.kserve.io/s3-usehttps: "1"
+spec:
+  predictor:
+    serviceAccountName: s3-sa
+    model:
+      modelFormat:
+        name: mlflow
+      protocolVersion: v2
+      runtime: kserve-mlserver
+      storageUri: "s3://mlflow-artifact-store-123-da/1/models/m-7065bfbb8b9f436fb9eafdcb97e192a9/artifacts/"
+      # resources:
+      #   requests:
+      #     cpu: "100m"
+      #     memory: "512Mi"
+      #   limits:
+      #     cpu: "1"
+      #     memory: "1Gi"

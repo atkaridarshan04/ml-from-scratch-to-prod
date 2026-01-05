@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: housing-training-job
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: s3-sa 
+      containers:
+        - name: trainer
+          image: ghcr.io/atkaridarshan04/ml-trainer:v1.0.0
+          imagePullPolicy: IfNotPresent
+
+          envFrom:
+            - secretRef:
+                name: s3creds
+
+          env:
+            # ---- MLflow ----
+            - name: MLFLOW_TRACKING_URI
+              value: "http://mlflow.mlflow.svc.cluster.local:5000"
+
+            # ---- Data ----
+            - name: DATA_URI
+              value: "data/raw/housing.csv"
+
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "Cloning repository..."
+              git clone https://github.com/atkaridarshan04/ml-from-scratch-to-prod.git
+              cd ml-from-scratch-to-prod
+
+              echo "Pulling data with DVC..."
+              dvc pull data/raw/housing.csv
+
+              echo "Starting training..."
+              python -m pipelines.train

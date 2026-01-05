@@ -48,35 +48,59 @@ The `main` branch represents the **final, production-oriented design**.
 
 ## 🏗️ System Architecture Overview
 
+The platform implements a Kubernetes-native ML system with:
+
+- **DVC + S3**: Dataset versioning and storage
+- **Kubernetes Jobs**: Ephemeral training workloads
+- **MLflow (in-cluster)**: Custom image with boto3, psycopg2 dependencies
+- **Model Registry**: Alias-based promotion workflows
+- **KServe + MLServer**: V2 protocol serving with direct S3 access
+- **Separation of concerns**: Control plane (MLflow) vs data plane (S3) vs serving plane (KServe)
+
+### Data Flow
+
+```
+DVC (S3) → K8s Training Job → MLflow (K8s) → S3 Artifacts → KServe → V2 Inference
+```
+
+1. **DVC** manages dataset versions in S3
+2. **Kubernetes Job** pulls data via DVC, executes training
+3. **MLflow** (in-cluster) logs experiments and model metadata
+4. **S3** stores model artifacts (PyFunc + code + dependencies)
+5. **Model Registry** creates version and updates alias
+6. **KServe** pulls model from S3 using resolved `storageUri`
+7. **MLServer** loads PyFunc model and serves via V2 protocol
+
 ```mermaid
 graph TB
     subgraph "Data Layer"
-        A[Raw Data<br/>data/raw/housing.csv] --> B[DVC Versioning]
+        A[Raw Data<br/>data/raw/housing.csv] --> B[DVC Versioning<br/>S3 Storage]
     end
     
     subgraph "Training Pipeline"
-        C[Training Script<br/>pipelines/train.py] --> D[MLflow Tracking]
+        C[Kubernetes Job<br/>pipelines/train.py] --> D[MLflow Tracking<br/>In-Cluster Deployment]
         D --> E[Model Registry<br/>CaliforniaHousingRegressor]
+        D --> F[S3 Artifact Store<br/>Model Artifacts + Code]
     end
     
     subgraph "Inference Layer"
-        F[Batch Inference<br/>pipelines/inference.py]
-        G[Online API<br/>src/api/]
-        E --> F
+        G[Batch Inference<br/>pipelines/inference.py]
+        H[KServe InferenceService<br/>MLServer Runtime]
+        F --> G
+        F --> H
         E --> G
     end
     
-    subgraph "Deployment"
-        H[Docker Compose]
-        I[Kubernetes/KServe]
-        G --> H
-        G --> I
+    subgraph "Serving Architecture"
+        I[KServe V2 Protocol<br/>Tensor-based Requests]
+        J[MLflow PyFunc Model<br/>Preprocessing + Model]
+        H --> I
+        I --> J
     end
     
-    A --> C
     B --> C
+    A --> B
 ```
-
 
 
 ## 🚀 Quick Start (Main Branch)
@@ -87,9 +111,9 @@ cd ml-from-scratch-to-prod
 git checkout main
 ```
 
-### Local Development 
+### Production Deployment
 
-➡️ See: [docs/environments/local.md](./docs/environments/local.md)
+➡️ See: [docs/k8s.md](./docs/k8s.md)
 
 
 
@@ -100,39 +124,30 @@ ml-from-scratch-to-prod/
 ├── .dvc/                 # DVC configuration
 ├── data/                 # Raw data and inference inputs
 ├── docs/                 # Architecture, workflows, and decisions
+├── k8s/                  # Kubernetes manifests
 ├── pipelines/            # Training & batch inference entry points
-├── serving               # Serving layer (API code & model artifacts)
 ├── src/                  # Core ML logic
-├── tests/                # API tests
-├── requirements/         # Dependency separation (train / api)
-├── Dockerfile            # Docker image for api serving
+├── scripts/              # Scripts
+├── requirements.txt      # Dependencies
+├── Dockerfile.mlflow     # Custome MLFlow Docker image
+├── Dockerfile.train      # Training Job Docker image
 └── README.md             # This file
 ```
 
 
 
-## 📚 Documentation Hub
+# 📚 Documentation Hub
 
-All documentation lives under `docs/` and is organized by **concern**.
+| **Topic** | **Document** |
+|-----------|-------------|
+| Data versioning | [dvc.md](./docs/dvc.md) |
+| MLflow architecture | [mlflow.md](./docs/mlflow.md) |
+| Model packaging | [model-packaging.md](./docs/codebase/model-packaging.md) |
+| Training workflow | [training.md](./docs/workflows/training.md) |
+| Batch inference | [inference-batch.md](./docs/workflows/inference-batch.md) |
+| Online inference | [inference-online.md](./docs/workflows/inference-online.md) |
+| Kubernetes deployment | [k8s.md](./docs/k8s.md) |
 
-| Area            | Description                                   |
-| --------------- | --------------------------------------------- |        
-| [codebase/](./docs/codebase/)     | Source code organization and design decisions |
-| [workflows/](./docs/workflows/)    | Training and inference pipelines              |
-| [environments/](./docs/environments/) | Local, Docker, and Kubernetes execution       |
-| [mlflow/](./docs/mlflow/)       | Experiment tracking and model lifecycle       |        
-
-Start here:
-
-➡️ [docs/README.md](./docs/README.md)
-
-
-
-## 🧪 Testing
-
-```bash
-pytest -v
-```
 
 ## 📄 License
 

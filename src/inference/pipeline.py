@@ -1,11 +1,9 @@
 import pandas as pd
 import mlflow.pyfunc
 
-from preprocessing import (
-    apply_imputer_transformation,
-    apply_one_hot_encoder,
-    add_engineered_features,
-)
+from src.preprocessing.imputation import apply_imputer_transformation
+from src.preprocessing.encoding import apply_one_hot_encoder
+from src.preprocessing.feature_engineering import add_engineered_features
 
 class HousingInferencePipeline(mlflow.pyfunc.PythonModel):
     """
@@ -24,6 +22,6 @@ class HousingInferencePipeline(mlflow.pyfunc.PythonModel):
         df = add_engineered_features(df)
         return df
 
-    def predict(self, model_input: pd.DataFrame, params=None):
+    def predict(self, context, model_input: pd.DataFrame, params=None):
         X = self.preprocess(model_input)
         return self.model.predict(X)

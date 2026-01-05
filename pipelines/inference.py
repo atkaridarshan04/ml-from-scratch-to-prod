@@ -21,9 +21,9 @@ logging.basicConfig(
 logger = logging.getLogger("inference_pipeline")
 
 
-# MODEL_URI = "models:/CaliforniaHousingRegressor@Production"   # Alias based
+MODEL_URI = "models:/CaliforniaHousingRegressor@Production"   # Alias based
 # MODEL_URI = "models:/CaliforniaHousingRegressor/1"            # Version based
-MODEL_URI = "serving/models/"    # Local path based
+# MODEL_URI = "serving/models/"    # Local path based
 
 INPUT_DATA = Path("data/inference/sample_input.csv")
 OUTPUT_PATH = Path("outputs/batch_run_001.json")

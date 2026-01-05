@@ -1,12 +1,9 @@
-# Model Packaging Strategy (Unified Model Artifact)
+# Model Packaging Strategy (MLflow PyFunc with Unified Preprocessing)
 
 This document explains how and why the project packages preprocessing,
-feature engineering, and the trained model into a **single unified model
-artifact**.
+feature engineering, and the trained model into a **single unified MLflow PyFunc model**.
 
-
-
-## 🎯 Problem Statement
+## 🎯 Problem
 
 During early iterations of this project, inference was implemented by
 loading and applying multiple independent artifacts, including:
@@ -29,28 +26,88 @@ Specifically, we observed the following risks:
   implementation details, making the API harder to maintain and test
 
 
+## ✅ Design Decision: MLflow PyFunc with Bundled Preprocessing
+
+We package **all inference-time logic** into a **single MLflow PyFunc model artifact**, which is then registered and versioned in MLflow. 
+
+### Why MLflow PyFunc?
+
+MLflow PyFunc provides:
+- **Custom model classes** that can encapsulate preprocessing + prediction
+- **Code packaging** via `code_paths=["src"]` for absolute imports
+- **Environment consistency** through conda/pip requirements
+- **Signature enforcement** for input/output validation
+- **KServe compatibility** via MLServer runtime
+
+### PyFunc Predict Contract
+
+The model uses the canonical PyFunc signature required for MLServer compatibility:
+
+```python
+def predict(self, context, model_input, params=None):
+    # Preprocessing + prediction logic
+    return predictions
+```
+
+This signature is **mandatory** for KServe V2 protocol support.
 
 
-## ✅ Design Decision
+## 🏗️ Implementation: HousingInferencePipeline
 
-This project packages **all inference-time logic** into a **single model
-artifact**, which is then registered and versioned in MLflow.
+The unified model is implemented as:
+
+```python
+class HousingInferencePipeline(mlflow.pyfunc.PythonModel):
+    def __init__(self, imputer, encoder, model):
+        self.imputer = imputer
+        self.encoder = encoder  
+        self.model = model
+    
+    def predict(self, context, model_input: pd.DataFrame, params=None):
+        X = self.preprocess(model_input)
+        return self.model.predict(X)
+```
+
+See [src/inference/pipeline.py](../../src/inference/pipeline.py) for full implementation.
+
+
+## 📦 Code Packaging Rules
+
+### Absolute Imports with src/ Package
+
+All inference code uses **absolute imports**:
+
+```python
+from src.preprocessing.imputation import apply_imputer_transformation
+from src.preprocessing.encoding import apply_one_hot_encoder
+```
+
+### Code Paths Configuration
+
+Models are logged with:
+
+```python
+mlflow.pyfunc.log_model(
+    python_model=inference_pipeline,
+    code_paths=["src"],  # Packages entire src/ directory
+    # ...
+)
+```
 
 A single model version represents:
-- The exact preprocessing steps
-- The exact feature engineering logic
-- The exact trained model
+- Exact preprocessing steps (fitted transformers)
+- Exact feature engineering logic
+- Exact trained model parameters
+- Exact code dependencies
+
+## Inference Interface
 
 Inference consumes **one object** and calls:
 
 ```python
-model.predict(raw_input_df)
+model.predict(context, raw_input_df)
 ```
 
-The model is unified using this approach:
-- **MLflow PyFunc models**, which support custom model classes
-- A custom `HousingInferencePipeline` class that encapsulates preprocessing and
-  prediction logic.   
-    - See [src/inference/pipeline.py](../../src/inference/pipeline.py) for details
+No preprocessing logic exists outside the model artifact.
 
 ---
