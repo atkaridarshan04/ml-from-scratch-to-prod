@@ -6,6 +6,7 @@
 [![Scikit Learn](https://img.shields.io/badge/Scikit_Learn-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![DVC](https://img.shields.io/badge/DVC-13ADC7?logo=dvc&logoColor=white)](https://dvc.org/)
 [![MLflow](https://img.shields.io/badge/MLflow-0194E2?logo=mlflow&logoColor=white)](https://mlflow.org/)
+[![Argo](https://img.shields.io/badge/Argo-EF7B4D?logo=argo&logoColor=white)](https://argoproj.github.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
@@ -122,6 +123,7 @@ git checkout main
 ```
 ml-from-scratch-to-prod/
 ├── .dvc/                 # DVC configuration
+├── argo/                 # Argo Workflows Manifests
 ├── data/                 # Raw data and inference inputs
 ├── docs/                 # Architecture, workflows, and decisions
 ├── k8s/                  # Kubernetes manifests
@@ -142,6 +144,7 @@ ml-from-scratch-to-prod/
 |-----------|-------------|
 | Data versioning | [dvc.md](./docs/dvc.md) |
 | MLflow architecture | [mlflow.md](./docs/mlflow.md) |
+| Argo Workflows CI | [argo-workflow.md](./docs/argo-workflow.md) |
 | Model packaging | [model-packaging.md](./docs/codebase/model-packaging.md) |
 | Training workflow | [training.md](./docs/workflows/training.md) |
 | Batch inference | [inference-batch.md](./docs/workflows/inference-batch.md) |

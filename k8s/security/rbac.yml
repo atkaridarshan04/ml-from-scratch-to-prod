@@ -1,0 +1,29 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-runner-role
+  namespace: default
+rules:
+  # Permissions to manage workflow tasks and results
+  - apiGroups: ["argoproj.io"]
+    resources: ["workflowtaskresults"]
+    verbs: ["create", "patch", "get", "list", "update"]
+  # Permissions to manage pods (creation/deletion)
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "watch", "list", "create", "patch", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-runner-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: s3-sa
+    namespace: default
+roleRef:
+  kind: Role
+  name: argo-runner-role
+  apiGroup: rbac.authorization.k8s.io

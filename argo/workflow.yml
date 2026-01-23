@@ -1,0 +1,174 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: mlops-ci-
+spec:
+  entrypoint: mlops-pipeline
+  serviceAccountName: s3-sa
+
+  arguments:
+    parameters:
+      - name: model-name
+        value: CaliforniaHousingRegressor
+
+  templates:
+  # =========================
+  # PIPELINE ORCHESTRATOR
+  # =========================
+  - name: mlops-pipeline
+    steps:
+      - - name: train
+          template: train-model
+      - - name: promote
+          template: promote-model
+          arguments:
+            parameters:
+              - name: model-version
+                value: "{{steps.train.outputs.parameters.model-version}}"
+      - - name: resolve-uri
+          template: resolve-model-uri
+      - - name: update-git
+          template: update-git-config
+          arguments:
+            parameters:
+              - name: model-uri
+                value: "{{steps.resolve-uri.outputs.parameters.model-uri}}"
+
+  # =========================
+  # TRAIN STEP
+  # =========================
+  - name: train-model
+    container:
+      image: ghcr.io/atkaridarshan04/ml-trainer:v1.0.0
+      imagePullPolicy: IfNotPresent
+      envFrom:
+        - secretRef:
+            name: s3creds
+      env:
+        - name: MLFLOW_TRACKING_URI
+          value: http://mlflow.mlflow.svc.cluster.local:5000
+        - name: DATA_URI
+          value: data/raw/housing.csv
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -e
+          git clone https://github.com/atkaridarshan04/ml-from-scratch-to-prod.git
+          cd ml-from-scratch-to-prod
+          
+          dvc pull data/raw/housing.csv
+          python -m pipelines.train
+
+          # Get the latest model version registered in MLflow
+          MODEL_VERSION=$(python - <<'EOF'
+          import mlflow
+          from mlflow.tracking import MlflowClient
+          client = MlflowClient("http://mlflow.mlflow.svc.cluster.local:5000")
+          latest = client.get_latest_versions("CaliforniaHousingRegressor", stages=[])
+          print(latest[-1].version)
+          EOF
+          )
+
+          echo "Resolved MODEL_VERSION=${MODEL_VERSION}"
+          echo -n "$MODEL_VERSION" > /tmp/model_version.txt
+    outputs:
+      parameters:
+        - name: model-version
+          valueFrom:
+            path: /tmp/model_version.txt
+
+  # =========================
+  # PROMOTE MODEL
+  # =========================
+  - name: promote-model
+    inputs:
+      parameters:
+        - name: model-version
+    container:
+      image: ghcr.io/atkaridarshan04/mlflow-server:v3.8.0
+      env:
+        - name: MODEL_VERSION
+          value: "{{inputs.parameters.model-version}}"
+        - name: MODEL_NAME
+          value: "{{workflow.parameters.model-name}}"
+        - name: MLFLOW_TRACKING_URI
+          value: http://mlflow.mlflow.svc.cluster.local:5000
+      command: ["python", "-c"]
+      args:
+        - |
+          import os
+          from mlflow.tracking import MlflowClient
+          
+          # FIX: strip() removes any hidden whitespace/newlines
+          version_str = os.environ.get("MODEL_VERSION", "").strip()
+          model_name = os.environ["MODEL_NAME"]
+          
+          print(f"Promoting version: '{version_str}'")
+          version = int(version_str)
+
+          client = MlflowClient(os.environ["MLFLOW_TRACKING_URI"])
+          client.set_registered_model_alias(name=model_name, alias="production", version=version)
+          print(f"Successfully promoted {model_name} v{version} to production")
+
+  # =========================
+  # RESOLVE ARTIFACT URI
+  # =========================
+  - name: resolve-model-uri
+    container:
+      image: python:3.10
+      command: ["sh", "-c"]
+      args:
+        - |
+          pip install mlflow -q
+          python -c '
+          from mlflow.tracking import MlflowClient
+          import os
+          client = MlflowClient("http://mlflow.mlflow.svc.cluster.local:5000")
+          mv = client.get_model_version_by_alias("{{workflow.parameters.model-name}}", "production")
+          uri = client.get_model_version_download_uri("{{workflow.parameters.model-name}}", mv.version)
+          with open("/tmp/model_uri.txt", "w") as f: f.write(uri)
+          '
+    outputs:
+      parameters:
+        - name: model-uri
+          valueFrom:
+            path: /tmp/model_uri.txt
+
+  # =========================
+  # UPDATE GIT (DIRECT MANIFEST UPDATE)
+  # =========================
+  - name: update-git-config
+    inputs:
+      parameters:
+        - name: model-uri
+    container:
+      image: alpine/git
+      env:
+      - name: GITHUB_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-token
+            key: token
+      command: ["sh", "-c"]
+      args:
+        - |
+          set -e
+          
+          echo "Cloning repository..."
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/atkaridarshan04/ml-from-scratch-to-prod.git
+          cd ml-from-scratch-to-prod
+
+          echo "Updating InferenceService manifest..."
+          sed -i "s|storageUri:.*|storageUri: \"{{inputs.parameters.model-uri}}\"|" k8s/workloads/inference-service.yml
+
+          echo "Configuring Git..."
+          git config user.email "ci@mlops.local"
+          git config user.name "mlops-ci"
+
+          echo "Staging changes..."
+          git add k8s/inference-service.yml
+          
+          git commit -m "chore: update production storageUri to {{inputs.parameters.model-uri}} [skip ci]"
+          
+          echo "Pushing to GitHub..."
+          git push origin main

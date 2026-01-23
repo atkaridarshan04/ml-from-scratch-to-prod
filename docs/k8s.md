@@ -68,7 +68,7 @@ kubectl apply -f k8s/mlflow/postgres.yml
 ### 2.3 Configure Service Account (S3 Access)
 
 ```bash
-kubectl apply -f k8s/sa.yml -n mlflow
+kubectl apply -f k8s/security/s3-auth.yml -n mlflow
 ```
 
 This service account provides:
@@ -115,14 +115,48 @@ Open:
 
 
 
-## 3️⃣ Run Training as a Kubernetes Job
+## 3️⃣ Training & Model Deployment Options
+
+You can execute training and model deployment through **two approaches**:
+
+### 🤖 Automated Approach (Recommended)
+
+Use **Argo Workflows** for complete CI/CD automation:
+
+👉 **See:** [`argo-workflow.md`](./argo-workflow.md)
+
+This handles:
+- Training execution
+- Model registration  
+- Production alias promotion
+- Artifact URI resolution
+- Git manifest updates
+
+**Quick start:**
+```bash
+argo submit argo/workflow.yml --watch
+```
+
+---
+
+### 🔧 Manual Approach
+
+For step-by-step execution and learning, follow the manual process below.
+
+### 3.1 Run Training as a Kubernetes Job
 
 Training is executed as a **Kubernetes Job**
 
-### 3.1 Launch Training Job
+### 3.1 Apply K8s Service Account
 
 ```bash
-kubectl apply -f k8s/training-job.yml
+kubectl apply -f k8s/security/s3-auth.yml
+```
+
+### 3.2 Launch Training Job
+
+```bash
+kubectl apply -f k8s/workload/training-job.yml
 ```
 
 This job will:
@@ -136,7 +170,7 @@ This job will:
 
 ---
 
-### 3.2 Validate Training Output
+### 3.3 Validate Training Output
 
 In MLflow UI:
 
@@ -148,7 +182,7 @@ In MLflow UI:
 
 ---
 
-### 3.3 Assign Production Alias
+### 3.4 Assign Production Alias
 
 In **MLflow → Models**:
 
@@ -162,7 +196,10 @@ In **MLflow → Models**:
 
 
 
-## 4️⃣ Resolve Model Artifact URI
+## 4️⃣ Resolve Model Artifact URI (Manual Only)
+
+> **Note:** This step is **only required for manual approach**. 
+> Automated workflow handles this automatically.
 
 KServe **cannot consume MLflow aliases directly**.
 
@@ -250,7 +287,7 @@ kubectl get pods -n kserve
 
 ### 6.1 Update InferenceService
 
-Edit [k8s/inference-service.yml](../k8s/inference-service.yml) accordingly:
+Edit [k8s/workloads/inference-service.yml](../k8s/workloads/inference-service.yml) accordingly:
 
 ```yaml
 spec:
@@ -259,10 +296,12 @@ spec:
       storageUri: "s3://mlflow-artifact-store-123-da/1/models/m-7065bfbb8b9f436fb9eafdcb97e192a9/artifacts/"
 ```
 
+> Note: If using the automated Argo workflow, this step is handled automatically.
+
 Apply:
 
 ```bash
-kubectl apply -f k8s/inference-service.yml
+kubectl apply -f k8s/workloads/inference-service.yml
 ```
 
 ---

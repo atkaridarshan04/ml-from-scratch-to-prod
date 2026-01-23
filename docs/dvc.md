@@ -20,6 +20,11 @@ All non-raw data (splits, features, artifacts) is **deterministically generated 
 
 ## ⚙️ How to Use DVC
 
+### Install DVC
+```bash
+pip install dvc dvc[s3]  # Include s3 support if using S3 remote
+```
+
 ### 1️⃣ Initialize DVC
 
 Run once from the project root:
@@ -56,6 +61,7 @@ mkdir -p ~/dvc-storage
 dvc remote add -d localstorage ~/dvc-storage
 ```
 
+S3 Remote Example:
 ```bash
 dvc remote add -d housing-data-s3 s3://housing-data-remote-bucket
 ```
