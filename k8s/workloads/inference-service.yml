@@ -14,7 +14,7 @@ spec:
         name: mlflow
       protocolVersion: v2
       runtime: kserve-mlserver
-      storageUri: "s3://mlflow-artifact-store-123-da/1/models/m-493f9d5f4c0e4a3ebc60d7789d752895/artifacts"
+      storageUri: "s3://mlflow-artifact-store-123-da/1/models/m-8f9d92e4d921400fb6d51d6d60ed06ab/artifacts"
       # resources:
       #   requests:
       #     cpu: "100m"
