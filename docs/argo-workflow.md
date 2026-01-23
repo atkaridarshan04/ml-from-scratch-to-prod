@@ -289,6 +289,11 @@ inputs:
 
 ## 🎯 Execution Guide
 
+### Apply Template
+```bash
+kubectl apply -f argo/template.yml
+```
+
 ### Submit Workflow
 
 **Basic submission:**
